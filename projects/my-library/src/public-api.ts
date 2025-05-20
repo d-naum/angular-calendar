@@ -3,10 +3,13 @@
  */
 
 // Export services and types
-export * from './lib/my-library.service';
+export * from './lib/calendar.service';
 
 // Export components
-export * from './lib/my-library.component';
+export * from './lib/calendar.component';
+export * from './lib/draggable-event.component';
+export * from './lib/time-slot.component';
+export * from './lib/drop-zone.directive';
 
-// Export modules
-export * from './lib/my-library.module';
+// Export models
+export * from './lib/models/recurrence.model';
