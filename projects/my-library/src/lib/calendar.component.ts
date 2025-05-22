@@ -297,10 +297,12 @@ import { DropZoneDirective } from './drop-zone.directive';
       font-weight: bold;
       border-bottom: 1px solid #eee;
       padding: 8px 0;
+      gap: 1px; /* Added to match month-grid gap */
     }
     
     .weekdays-header .weekday {
       padding: 8px;
+      box-sizing: border-box; /* Added for consistent width calculation */
     }
     
     /* Month View */
@@ -319,6 +321,8 @@ import { DropZoneDirective } from './drop-zone.directive';
       display: flex;
       flex-direction: column;
       cursor: pointer;
+      box-sizing: border-box; /* Ensures padding and border are included in the element's total width and height */
+      min-width: 0; /* Ensures grid columns maintain equal width regardless of content */
     }
     
     .calendar-day:hover {
@@ -752,17 +756,34 @@ import { DropZoneDirective } from './drop-zone.directive';
     
     /* Responsive Design */
     @media (max-width: 768px) {
+      .calendar-container {
+        padding: 8px; /* Reduced padding */
+      }
+
       .calendar-header {
         flex-direction: column;
         align-items: stretch;
+        gap: 8px; /* Reduced gap */
+      }
+
+      .calendar-title {
+        font-size: 1.3rem; /* Slightly smaller title */
+      }
+
+      .nav-btn, .view-btn, .today-btn {
+        padding: 6px 10px; /* Smaller buttons */
+        font-size: 0.85rem;
       }
       
       .calendar-navigation {
-        justify-content: center;
+        justify-content: space-between; /* Better spacing for nav buttons */
       }
       
       .calendar-view-selector {
-        justify-content: center;
+        display: grid; /* Changed to grid for better distribution */
+        grid-template-columns: repeat(3, 1fr); /* Equal width for view buttons */
+        gap: 4px;
+        width: 100%;
       }
       
       .today-btn {
@@ -770,10 +791,147 @@ import { DropZoneDirective } from './drop-zone.directive';
         width: 100%;
         margin-top: 8px;
       }
+
+      .weekdays-header .weekday {
+        padding: 4px; /* Reduced padding */
+        font-size: 0.8rem;
+      }
+
+      /* Month View Responsive */
+      .calendar-day {
+        min-height: 80px; /* Reduced min-height for month days */
+        padding: 2px;
+      }
+
+      .date-number {
+        font-size: 0.8rem;
+      }
+
+      .add-event-btn {
+        width: 18px;
+        height: 18px;
+        font-size: 12px;
+      }
+
+      .event-item {
+        font-size: 0.75rem; /* Smaller event text in month view */
+        padding: 1px 2px;
+      }
+
+      .more-events {
+        font-size: 0.7rem;
+      }
+
+      /* Week/Day View Responsive */
+      .calendar-week-view .weekdays-header,
+      .calendar-day-view .day-header {
+        font-size: 0.8rem;
+      }
+      
+      .time-gutter {
+        width: 45px; /* Reduced time gutter width */
+        font-size: 0.7rem;
+      }
+
+      .hour-cell {
+        /* height: 50px; */ /* Removed to prevent squeezing column height */
+        font-size: 0.7rem;
+      }
+      
+      .week-body, .day-body {
+        height: 450px; /* Adjust height for smaller screens */
+      }
+
+      .day-event, .week-event {
+        font-size: 0.75rem;
+      }
+      
+      .event-title {
+        font-size: 0.8rem;
+      }
+      .event-time, .event-description {
+        font-size: 0.7rem;
+      }
+
+      /* Event Form Responsive */
+      .event-form {
+        padding: 15px;
+        width: 95%; /* Slightly wider form on small screens */
+      }
+
+      .event-form h3 {
+        font-size: 1.2rem;
+      }
       
       .form-row {
         flex-direction: column;
-        gap: 8px;
+        gap: 8px; /* Consistent gap */
+        margin-bottom: 12px; /* Adjusted margin */
+      }
+
+      .form-group label {
+        font-size: 0.85rem;
+      }
+
+      .form-group input, .form-group textarea {
+        padding: 6px;
+        font-size: 0.85rem;
+      }
+      
+      .form-actions {
+        gap: 6px;
+      }
+
+      .btn {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+      }
+    }
+
+    /* Additional media query for very small screens */
+    @media (max-width: 480px) {
+      .calendar-title {
+        font-size: 1.1rem;
+        min-width: 150px; /* Adjust min-width */
+      }
+
+      .nav-btn, .view-btn, .today-btn {
+        padding: 5px 8px;
+        font-size: 0.8rem;
+      }
+      
+      .weekdays-header {
+        /* Optionally hide weekday names and show only first letter or use numbers */
+        /* Example: .weekday:first-letter { font-size: 0.9rem; } */
+      }
+      
+      .calendar-day {
+        min-height: 60px; /* Further reduce for very small screens */
+      }
+
+      .date-number {
+        font-size: 0.7rem;
+      }
+      
+      .events-container lib-draggable-event {
+        /* On very small screens, you might want to show only dots or a count */
+        font-size: 0.7rem;
+      }
+      
+      .time-gutter {
+        width: 35px; /* Further reduce time gutter */
+        font-size: 0.6rem;
+      }
+
+      .hour-cell {
+        /* height: 40px; */ /* Removed to prevent squeezing column height */
+        font-size: 0.6rem; /* Retaining font-size adjustment from original 480px rule */
+      }
+      
+      /* Hide event descriptions in day/week view on very small screens if too cluttered */
+      ::ng-deep .calendar-day-view lib-draggable-event .event-description,
+      ::ng-deep .calendar-week-view lib-draggable-event .event-description {
+        display: none;
       }
     }
   `]
