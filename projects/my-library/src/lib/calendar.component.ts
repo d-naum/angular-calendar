@@ -413,6 +413,7 @@ import { DropZoneDirective } from './drop-zone.directive';
       border-bottom: 1px solid #eee;
       padding: 2px 4px;
       position: relative;
+      box-sizing: border-box; /* Ensure padding and border are within the height */
     }
     
     .time-gutter .hour-cell {
@@ -625,7 +626,7 @@ import { DropZoneDirective } from './drop-zone.directive';
       position: absolute;
       left: 0;
       right: 0;
-      margin: 2px;
+      margin: 0; /* Remove margin to prevent offset */
       z-index: 5;
     }
     
@@ -634,7 +635,8 @@ import { DropZoneDirective } from './drop-zone.directive';
       height: 100%;
       display: flex;
       flex-direction: column;
-      padding: 4px 6px;
+      padding: 0; /* Remove padding to ensure pixel-perfect height */
+      box-sizing: border-box;
     }
     
     ::ng-deep .calendar-week-view lib-draggable-event.dragging,
@@ -973,25 +975,36 @@ export class CalendarComponent implements OnInit {
     
     return events;
   }
-  
-  calculateEventTop(event: CalendarEvent): number {
+    calculateEventTop(event: CalendarEvent): number {
     if (event.allDay) return 0;
-    
-    const startHour = event.start.getHours();
-    const startMinute = event.start.getMinutes();
-    return (startHour - this.startHour) * 60 + startMinute;
+
+    // Each minute is 1px if HOUR_HEIGHT = 60
+    const HOUR_HEIGHT = 60;
+    const calendarStartMinutes = this.startHour * 60;
+    const eventMinutes = event.start.getHours() * 60 + event.start.getMinutes();
+    return eventMinutes - calendarStartMinutes;
+  }
+
+  calculateEventHeight(event: CalendarEvent): number {
+    if (event.allDay) return (this.endHour - this.startHour + 1) * 60;
+
+    const start = event.start;
+    const end = event.end || new Date(start.getTime() + 3600000); // Default 1 hour
+
+    // Handle multi-day events (show only until end of day)
+    if (end.getDate() !== start.getDate()) {
+      const endOfDay = new Date(start);
+      endOfDay.setHours(23, 59, 59, 999);
+      const duration = (endOfDay.getTime() - start.getTime()) / 60000; // in minutes
+      return Math.max(1, duration);
+    }
+
+    // Calculate exact duration in minutes
+    const duration = (end.getTime() - start.getTime()) / 60000;
+    return Math.max(1, duration);
   }
   
-  calculateEventHeight(event: CalendarEvent): number {
-    if (event.allDay) return 24;
-    
-    const startTime = event.start.getTime();
-    const endTime = event.end ? event.end.getTime() : startTime + 3600000; // Default 1 hour
-    
-    const durationMinutes = (endTime - startTime) / 60000;
-    return Math.max(30, durationMinutes); // Minimum 30px height
-  }
-    onEventClick(event: CalendarEvent, e: MouseEvent): void {
+  onEventClick(event: CalendarEvent, e: MouseEvent): void {
     e.stopPropagation();
     
     // Don't open the edit form if we just dropped an event
@@ -1289,33 +1302,62 @@ export class CalendarComponent implements OnInit {
     const originalStart = new Date(originalEvent.start);
     const originalEnd = originalEvent.end ? new Date(originalEvent.end) : new Date(originalStart);
     const eventDuration = originalEnd.getTime() - originalStart.getTime();
-    
+
     // Create the new start date based on where it was dropped
     let newStart = new Date(dropData.date);
-    
-    if (this.currentView === 'month') {
-      // For month view, we keep the original time but change the date
+    let newEnd: Date; // Declare newEnd here
+
+    if (originalEvent.allDay) {
+      // For all-day events, keep original time (usually 00:00) and only update the date part
       newStart.setHours(
         originalStart.getHours(),
         originalStart.getMinutes(),
         originalStart.getSeconds(),
         originalStart.getMilliseconds()
       );
+      // For all-day events, the end date should also be updated to the new date, preserving its time
+      newEnd = new Date(dropData.date); 
+      newEnd.setHours(
+        originalEnd.getHours(),
+        originalEnd.getMinutes(),
+        originalEnd.getSeconds(),
+        originalEnd.getMilliseconds()
+      );
+      // If the event duration is less than a full day (which is unusual for allDay events, but to be safe)
+      // and the original start and end were on the same day, ensure the new end is also on the same day as newStart.
+      if (eventDuration < 24 * 60 * 60 * 1000 && originalStart.toDateString() === originalEnd.toDateString()) {
+        if (newEnd.toDateString() !== newStart.toDateString()) {
+            newEnd = new Date(newStart.getTime() + eventDuration);
+        }
+      }
+
+    } else if (this.currentView === 'month') {
+      // For month view (non-all-day), we keep the original time but change the date
+      newStart.setHours(
+        originalStart.getHours(),
+        originalStart.getMinutes(),
+        originalStart.getSeconds(),
+        originalStart.getMilliseconds()
+      );
+      newEnd = new Date(newStart.getTime() + eventDuration);
     } else if (dropData.hour !== undefined) {
-      // For week/day views with hour information
+      // For week/day views with hour information (and not an all-day event)
       newStart.setHours(dropData.hour, originalStart.getMinutes(), 0, 0);
+      newEnd = new Date(newStart.getTime() + eventDuration);
+    } else {
+      // Fallback or if hour is not defined for week/day (should not happen with current logic)
+      newEnd = new Date(newStart.getTime() + eventDuration);
     }
+
+    console.log('Moving event from', originalStart, 'to', newStart, 'new end', newEnd);
     
-    console.log('Moving event from', originalStart, 'to', newStart);
-    
-    // Calculate new end time based on the original duration
-    const newEnd = new Date(newStart.getTime() + eventDuration);
+    // const calculatedNewEnd = new Date(newStart.getTime() + eventDuration); // This line is removed/commented as newEnd is already correctly determined.
     
     try {
       // Update the event with the new dates
       this.calendarService.updateEvent(originalEvent.id, {
         start: newStart,
-        end: newEnd
+        end: newEnd // Use the correctly determined newEnd
       });
       
       // Emit the updated event
