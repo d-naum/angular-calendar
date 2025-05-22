@@ -62,6 +62,9 @@ import { DropZoneDirective } from './drop-zone.directive';
               <lib-draggable-event
                 *ngFor="let event of getEventsForDate(date)"
                 [event]="event"
+                [class.event-start]="getEventMultiDayPosition(event, date) === 'start'"
+                [class.event-middle]="getEventMultiDayPosition(event, date) === 'middle'"
+                [class.event-end]="getEventMultiDayPosition(event, date) === 'end'"
                 (click)="onEventClick(event, $event)"
                 (dragStart)="onDragStart($event)"
                 (dragEnd)="onDragEnd($event, date)">
@@ -112,9 +115,12 @@ import { DropZoneDirective } from './drop-zone.directive';
                 [event]="event"
                 [showResizeHandle]="true"
                 [style.position]="'absolute'"
-                [style.top.px]="calculateEventTop(event)"
-                [style.height.px]="calculateEventHeight(event)"
-                [style.width.calc]="'100% - 4px'"
+                [style.top.px]="calculateEventTop(event, date)"
+                [style.height.px]="calculateEventHeight(event, date)"
+                [style.width.calc]="getEventMultiDayPosition(event, date) === 'start' || getEventMultiDayPosition(event, date) === 'middle' ? 'calc(100% + 2px)' : 'calc(100% - 4px)'"
+                [class.event-start]="getEventMultiDayPosition(event, date) === 'start'"
+                [class.event-middle]="getEventMultiDayPosition(event, date) === 'middle'"
+                [class.event-end]="getEventMultiDayPosition(event, date) === 'end'"
                 (click)="onEventClick(event, $event)"
                 (dragStart)="onDragStart($event)"
                 (dragEnd)="onDragEnd($event, date)"
@@ -153,15 +159,16 @@ import { DropZoneDirective } from './drop-zone.directive';
                  (click)="onTimeSlotClick(selectedDate, hour)">
               <!-- Time slot -->
             </div>
-              <!-- Events for the day -->
-            <lib-draggable-event
+              <!-- Events for the day -->            <lib-draggable-event
                 *ngFor="let event of getEventsForDate(selectedDate)"
                 [event]="event"
-                [showResizeHandle]="true"
-                [style.position]="'absolute'"
-                [style.top.px]="calculateEventTop(event)"
-                [style.height.px]="calculateEventHeight(event)"
-                [style.width.calc]="'100% - 4px'"
+                [showResizeHandle]="true"                [style.position]="'absolute'"
+                [style.top.px]="calculateEventTop(event, selectedDate)"
+                [style.height.px]="calculateEventHeight(event, selectedDate)"
+                [style.width.calc]="getEventMultiDayPosition(event, selectedDate) === 'start' || getEventMultiDayPosition(event, selectedDate) === 'middle' ? 'calc(100% + 2px)' : 'calc(100% - 4px)'"
+                [class.event-start]="getEventMultiDayPosition(event, selectedDate) === 'start'"
+                [class.event-middle]="getEventMultiDayPosition(event, selectedDate) === 'middle'"
+                [class.event-end]="getEventMultiDayPosition(event, selectedDate) === 'end'"
                 (click)="onEventClick(event, $event)"
                 (dragStart)="onDragStart($event)"
                 (dragEnd)="onDragEnd($event, selectedDate)"
@@ -428,10 +435,11 @@ import { DropZoneDirective } from './drop-zone.directive';
       display: grid;
       grid-template-columns: repeat(7, 1fr);
     }
-    
-    .day-column {
+      .day-column {
       position: relative;
       border-right: 1px solid #eee;
+      overflow: visible; /* Allow multi-day events to cross column boundaries */
+      z-index: 1; /* Ensure proper stacking context for events */
     }
     
     .day-column:last-child {
@@ -620,29 +628,110 @@ import { DropZoneDirective } from './drop-zone.directive';
       display: block;
       z-index: 5;
     }
+      /* Multi-day event styling for month view */
+    ::ng-deep .calendar-month-view lib-draggable-event.event-start .draggable-event {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      margin-right: -1px; /* Create seamless connection */
+      width: calc(100% + 1px); /* Slightly wider to connect with next day */
+    }
     
-    ::ng-deep .calendar-week-view lib-draggable-event,
+    ::ng-deep .calendar-month-view lib-draggable-event.event-middle .draggable-event {
+      border-radius: 0;
+      margin-left: -1px;
+      margin-right: -1px;
+      width: calc(100% + 2px); /* Wider to connect with adjacent days */
+    }
+    
+    ::ng-deep .calendar-month-view lib-draggable-event.event-end .draggable-event {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      margin-left: -1px;
+      width: 100%; /* Normal width for end pieces */
+    }
+    
+    ::ng-deep .calendar-month-view lib-draggable-event.event-middle {
+      z-index: 4; /* Lower z-index than start and end to handle overlaps */
+    }
+      ::ng-deep .calendar-week-view lib-draggable-event,
     ::ng-deep .calendar-day-view lib-draggable-event {
       position: absolute;
       left: 0;
       right: 0;
       margin: 0; /* Remove margin to prevent offset */
       z-index: 5;
+      overflow: visible; /* Allow content to overflow for multi-day events */
     }
-    
-    ::ng-deep .calendar-week-view lib-draggable-event .draggable-event,
+      ::ng-deep .calendar-week-view lib-draggable-event .draggable-event,
     ::ng-deep .calendar-day-view lib-draggable-event .draggable-event {
       height: 100%;
       display: flex;
       flex-direction: column;
-      padding: 0; /* Remove padding to ensure pixel-perfect height */
+      padding: 4px 8px; /* Add padding for better readability */
       box-sizing: border-box;
+      overflow: hidden; /* Hide overflowing text content */
+      text-overflow: ellipsis;
+    }
+    
+    /* Improve text display in multi-day events */
+    ::ng-deep .calendar-week-view lib-draggable-event .event-title,
+    ::ng-deep .calendar-day-view lib-draggable-event .event-title {
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    ::ng-deep .calendar-week-view lib-draggable-event.event-middle .event-title,
+    ::ng-deep .calendar-day-view lib-draggable-event.event-middle .event-title,
+    ::ng-deep .calendar-week-view lib-draggable-event.event-end .event-time,
+    ::ng-deep .calendar-day-view lib-draggable-event.event-end .event-time,
+    ::ng-deep .calendar-week-view lib-draggable-event.event-middle .event-time,
+    ::ng-deep .calendar-day-view lib-draggable-event.event-middle .event-time {
+      /* Hide time display for middle and end parts of multi-day events to avoid repetition */
+      display: none;
+    }/* Multi-day event styling for week and day views */
+    ::ng-deep .calendar-week-view lib-draggable-event.event-start .draggable-event,
+    ::ng-deep .calendar-day-view lib-draggable-event.event-start .draggable-event {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      right: -2px; /* Extend slightly to the right to create seamless connection */
+      clip-path: inset(0 0 0 0); /* Ensures the event doesn't get clipped */
+    }
+    
+    ::ng-deep .calendar-week-view lib-draggable-event.event-middle .draggable-event,
+    ::ng-deep .calendar-day-view lib-draggable-event.event-middle .draggable-event {
+      border-radius: 0;
+      left: -2px; /* Extend slightly to the left */
+      right: -2px; /* Extend slightly to the right */
+      clip-path: inset(0 0 0 0); /* Ensures the event doesn't get clipped */
+    }
+    
+    ::ng-deep .calendar-week-view lib-draggable-event.event-end .draggable-event,
+    ::ng-deep .calendar-day-view lib-draggable-event.event-end .draggable-event {
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
+      left: -2px; /* Extend slightly to the left to create seamless connection */
+      clip-path: inset(0 0 0 0); /* Ensures the event doesn't get clipped */
     }
     
     ::ng-deep .calendar-week-view lib-draggable-event.dragging,
     ::ng-deep .calendar-day-view lib-draggable-event.dragging,
     ::ng-deep .calendar-month-view lib-draggable-event.dragging {
       z-index: 1000;
+    }
+    
+    /* Improve stacking of multi-day events */
+    ::ng-deep .calendar-week-view lib-draggable-event.event-start {
+      z-index: 6; /* Higher than middle and end parts */
+    }
+    
+    ::ng-deep .calendar-week-view lib-draggable-event.event-middle {
+      z-index: 5; /* Lower than start, higher than end */
+    }
+    
+    ::ng-deep .calendar-week-view lib-draggable-event.event-end {
+      z-index: 4; /* Lower than middle and start */
     }
     
     /* Drop zone styles */
@@ -975,31 +1064,65 @@ export class CalendarComponent implements OnInit {
     
     return events;
   }
-    calculateEventTop(event: CalendarEvent): number {
+  calculateEventTop(event: CalendarEvent, date?: Date): number {
     if (event.allDay) return 0;
 
     // Each minute is 1px if HOUR_HEIGHT = 60
     const HOUR_HEIGHT = 60;
     const calendarStartMinutes = this.startHour * 60;
-    const eventMinutes = event.start.getHours() * 60 + event.start.getMinutes();
-    return eventMinutes - calendarStartMinutes;
-  }
+    
+    // For multi-day events, handle positioning based on which day of the event we're showing
+    if (event.end && event.start.toDateString() !== event.end.toDateString()) {
+      const currentDate = date || (this.currentView === 'day' ? this.selectedDate : new Date());
+      const currentDateStr = currentDate.toDateString();
+      
+      // If this is the start day, use the event start time
+      if (event.start.toDateString() === currentDateStr) {
+        const eventMinutes = event.start.getHours() * 60 + event.start.getMinutes();
+        return Math.max(0, eventMinutes - calendarStartMinutes);
+      } 
+      // If this is a middle day or end day, start from the beginning of the visible hours
+      else {
+        return 0;
+      }
+    }
 
-  calculateEventHeight(event: CalendarEvent): number {
+    // For single-day events, calculate normally
+    const eventMinutes = event.start.getHours() * 60 + event.start.getMinutes();
+    return Math.max(0, eventMinutes - calendarStartMinutes);
+  }
+  calculateEventHeight(event: CalendarEvent, date?: Date): number {
     if (event.allDay) return (this.endHour - this.startHour + 1) * 60;
 
     const start = event.start;
     const end = event.end || new Date(start.getTime() + 3600000); // Default 1 hour
 
-    // Handle multi-day events (show only until end of day)
+    // Handle multi-day events (show only until end of day or from start of day)
     if (end.getDate() !== start.getDate()) {
-      const endOfDay = new Date(start);
-      endOfDay.setHours(23, 59, 59, 999);
-      const duration = (endOfDay.getTime() - start.getTime()) / 60000; // in minutes
-      return Math.max(1, duration);
+      const currentDate = date || (this.currentView === 'day' ? this.selectedDate : new Date());
+      const currentDateStr = currentDate.toDateString();
+      
+      // If this is the start day of the event
+      if (start.toDateString() === currentDateStr) {
+        const endOfDay = new Date(start);
+        endOfDay.setHours(23, 59, 59, 999);
+        const duration = (endOfDay.getTime() - start.getTime()) / 60000; // in minutes
+        return Math.max(1, duration);
+      } 
+      // If this is the end day of the event
+      else if (end.toDateString() === currentDateStr) {
+        const startOfDay = new Date(currentDate);
+        startOfDay.setHours(this.startHour, 0, 0, 0);
+        const duration = (end.getTime() - startOfDay.getTime()) / 60000; // in minutes
+        return Math.max(1, duration);
+      }
+      // If this is a middle day, show for the entire day
+      else {
+        return (this.endHour - this.startHour) * 60;
+      }
     }
 
-    // Calculate exact duration in minutes
+    // Calculate exact duration in minutes for single-day events
     const duration = (end.getTime() - start.getTime()) / 60000;
     return Math.max(1, duration);
   }
@@ -1393,5 +1516,24 @@ export class CalendarComponent implements OnInit {
       draggable: false,
       color: { primary: this.defaultEventColor }
     };
+  }
+
+  getEventMultiDayPosition(event: CalendarEvent, date: Date): 'start' | 'middle' | 'end' | null {
+    if (!event.end || event.start.toDateString() === event.end.toDateString()) {
+      // Event is single-day
+      return null;
+    }
+
+    const eventStartDate = new Date(event.start.getFullYear(), event.start.getMonth(), event.start.getDate());
+    const eventEndDate = new Date(event.end.getFullYear(), event.end.getMonth(), event.end.getDate());
+    const currentDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    if (eventStartDate.getTime() === currentDate.getTime()) {
+      return 'start';
+    } else if (eventEndDate.getTime() === currentDate.getTime()) {
+      return 'end';
+    } else {
+      return 'middle';
+    }
   }
 }
