@@ -59,7 +59,7 @@ jobs:
       - name: Build the library
         run: npm run build angular-calendar-lib # This was confirmed from your previous version
       - name: Publish to npmjs
-        working-directory: dist/angular-calendar-lib # This was confirmed from your previous version
+        working-directory: dist/my-library # Changed from dist/angular-calendar-lib
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
