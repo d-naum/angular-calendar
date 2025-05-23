@@ -13,3 +13,6 @@ export * from './lib/drop-zone.directive';
 
 // Export models
 export * from './lib/models/recurrence.model';
+
+// Export the module
+export * from './lib/angular-calendar.module';

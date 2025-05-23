@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CalendarComponent } from '../../../my-library/src/lib/calendar.component';
-import { CalendarService, CalendarEvent } from '../../../my-library/src/lib/calendar.service';
+import { CalendarComponent } from '../../../angular-calendar-lib/src/lib/calendar.component';
+import { CalendarService, CalendarEvent } from '../../../angular-calendar-lib/src/lib/calendar.service';
 
 @Component({
   selector: 'app-root',  

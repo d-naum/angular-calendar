@@ -19,4 +19,4 @@ import { DropZoneDirective } from './drop-zone.directive';
     DropZoneDirective
   ]
 })
-export class MyLibraryModule { }
+export class AngularCalendarModule { }
