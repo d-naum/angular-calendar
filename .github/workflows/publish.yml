@@ -1,0 +1,63 @@
+name: Publish to npmjs
+
+on:
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Required to push tags
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # Or your preferred Node.js version
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Configure Git
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Get package version, Create and Push Tag
+        id: tag_version
+        run: |
+          PACKAGE_JSON_PATH="projects/angular-calendar-lib/package.json"
+          if [ ! -f "$PACKAGE_JSON_PATH" ]; then
+            echo "Error: $PACKAGE_JSON_PATH not found!"
+            exit 1
+          fi
+          # Read version from the library's package.json
+          VERSION=$(node -p "require('./$PACKAGE_JSON_PATH').version")
+          echo "Version from $PACKAGE_JSON_PATH: $VERSION"
+          TAG_NAME="v$VERSION"
+          echo "Attempting to create tag: $TAG_NAME"
+
+          # Fetch all tags from the remote
+          git fetch --tags
+
+          # Check if tag already exists
+          if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Tag $TAG_NAME already exists. No new tag created."
+          else
+            echo "Creating and pushing tag $TAG_NAME"
+            git tag "$TAG_NAME"
+            git push origin "$TAG_NAME"
+            echo "Tag $TAG_NAME pushed successfully."
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the library
+        run: npm run build angular-calendar-lib # This was confirmed from your previous version
+      - name: Publish to npmjs
+        working-directory: dist/angular-calendar-lib # This was confirmed from your previous version
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
