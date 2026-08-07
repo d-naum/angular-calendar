@@ -1,11 +1,11 @@
-import { Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CalendarEvent } from './calendar.service';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'lib-draggable-event',
   standalone: true,
-  imports: [CommonModule],  template: `
+  imports: [],  template: `
     <div class="draggable-event"
       [class.dragging]="isDragging"
       [style.backgroundColor]="event.color?.primary || '#3788d8'"
@@ -18,14 +18,17 @@ import { CommonModule } from '@angular/common';
       (dragend)="handleDragEnd($event)"
       (click)="handleClick($event)">
       <ng-content></ng-content>
-      
-      <div *ngIf="event.resizable && showResizeHandle" 
-        class="resize-handle"
-        (mousedown)="onResizeStart($event)">
-        ⋮
-      </div>
+    
+      @if (event.resizable && showResizeHandle) {
+        <div
+          class="resize-handle"
+          (mousedown)="onResizeStart($event)">
+          ⋮
+        </div>
+      }
     </div>
-  `,
+    `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .draggable-event {
       padding: 4px 8px;

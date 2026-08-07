@@ -1,5 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, Output, EventEmitter, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { CalendarEvent, CalendarService, CalendarViewMode, DateRange } from './calendar.service';
 import { DraggableEventComponent } from './draggable-event.component';
@@ -7,7 +7,7 @@ import { DropZoneDirective } from './drop-zone.directive';
 
 @Component({
   selector: 'lib-calendar',  standalone: true,
-  imports: [CommonModule, FormsModule, DraggableEventComponent, DropZoneDirective],
+  imports: [FormsModule, DraggableEventComponent, DropZoneDirective],
   template: `
     <div class="calendar-container">
       <div class="calendar-header">
@@ -16,125 +16,141 @@ import { DropZoneDirective } from './drop-zone.directive';
           <h2 class="calendar-title">{{ getHeaderTitle() }}</h2>
           <button class="nav-btn" (click)="navigateNext()">&gt;</button>
         </div>
-        
+    
         <div class="calendar-view-selector">
-          <button 
-            class="view-btn" 
+          <button
+            class="view-btn"
             [class.active]="currentView === 'month'"
-            (click)="setView('month')">Month</button>
-          <button 
-            class="view-btn" 
+          (click)="setView('month')">Month</button>
+          <button
+            class="view-btn"
             [class.active]="currentView === 'week'"
-            (click)="setView('week')">Week</button>
-          <button 
-            class="view-btn" 
+          (click)="setView('week')">Week</button>
+          <button
+            class="view-btn"
             [class.active]="currentView === 'day'"
-            (click)="setView('day')">Day</button>
+          (click)="setView('day')">Day</button>
         </div>
-        
+    
         <button class="today-btn" (click)="goToToday()">Today</button>
       </div>
-      
+    
       <!-- Month View -->
-      <div *ngIf="currentView === 'month'" class="calendar-month-view">
-        <div class="weekdays-header">
-          <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
-        </div>
-        
-        <div class="month-grid">          <div 
-            *ngFor="let date of daysInMonth" 
-            class="calendar-day"
-            [class.current-month]="isCurrentMonth(date)"
-            [class.today]="isToday(date)"
-            [class.selected]="isSelected(date)"
-            libDropZone
-            [date]="date"
-            (itemDropped)="onItemDropped($event)"
-            (click)="selectDate(date)">
-            <div class="date-header">
-              <span class="date-number">{{ date.getDate() }}</span>
-              <button 
-                *ngIf="isCurrentMonth(date)"
-                class="add-event-btn" 
-                (click)="openNewEventForm(date, $event)">+</button>
-            </div>
+      @if (currentView === 'month') {
+        <div class="calendar-month-view">
+          <div class="weekdays-header">
+            @for (day of weekDays; track day) {
+              <div class="weekday">{{ day }}</div>
+            }
+          </div>
+          <div class="month-grid">          @for (date of daysInMonth; track date) {
+            <div
+              class="calendar-day"
+              [class.current-month]="isCurrentMonth(date)"
+              [class.today]="isToday(date)"
+              [class.selected]="isSelected(date)"
+              libDropZone
+              [date]="date"
+              (itemDropped)="onItemDropped($event)"
+              (click)="selectDate(date)">
+              <div class="date-header">
+                <span class="date-number">{{ date.getDate() }}</span>
+                @if (isCurrentMonth(date)) {
+                  <button
+                    class="add-event-btn"
+                  (click)="openNewEventForm(date, $event)">+</button>
+                }
+              </div>
               <div class="events-container">
-              <lib-draggable-event
-                *ngFor="let event of getEventsForDate(date)"
-                [event]="event"
-                [class.event-start]="getEventMultiDayPosition(event, date) === 'start'"
-                [class.event-middle]="getEventMultiDayPosition(event, date) === 'middle'"
-                [class.event-end]="getEventMultiDayPosition(event, date) === 'end'"
-                (click)="onEventClick(event, $event)"
-                (dragStart)="onDragStart($event)"
-                (dragEnd)="onDragEnd($event, date)">
-                {{ event.title }}
-              </lib-draggable-event>
-              
-              <div *ngIf="getEventsForDate(date).length > maxEventsPerDay" class="more-events">
-                +{{ getEventsForDate(date).length - maxEventsPerDay }} more
+                @for (event of getEventsForDate(date); track event) {
+                  <lib-draggable-event
+                    [event]="event"
+                    [class.event-start]="getEventMultiDayPosition(event, date) === 'start'"
+                    [class.event-middle]="getEventMultiDayPosition(event, date) === 'middle'"
+                    [class.event-end]="getEventMultiDayPosition(event, date) === 'end'"
+                    (click)="onEventClick(event, $event)"
+                    (dragStart)="onDragStart($event)"
+                    (dragEnd)="onDragEnd($event, date)">
+                    {{ event.title }}
+                  </lib-draggable-event>
+                }
+                @if (getEventsForDate(date).length > maxEventsPerDay) {
+                  <div class="more-events">
+                    +{{ getEventsForDate(date).length - maxEventsPerDay }} more
+                  </div>
+                }
               </div>
             </div>
-          </div>
+          }
         </div>
       </div>
-      
-      <!-- Week View -->
-      <div *ngIf="currentView === 'week'" class="calendar-week-view">
+    }
+    
+    <!-- Week View -->
+    @if (currentView === 'week') {
+      <div class="calendar-week-view">
         <div class="weekdays-header">
           <div class="time-gutter"></div>
-          <div 
-            *ngFor="let date of daysInWeek" 
-            class="weekday"
-            [class.today]="isToday(date)">
-            <div>{{ getDayName(date) }}</div>
-            <div class="date-number">{{ date.getDate() }}</div>
-          </div>
+          @for (date of daysInWeek; track date) {
+            <div
+              class="weekday"
+              [class.today]="isToday(date)">
+              <div>{{ getDayName(date) }}</div>
+              <div class="date-number">{{ date.getDate() }}</div>
+            </div>
+          }
         </div>
-        
         <div class="week-body">
           <div class="time-gutter">
-            <div *ngFor="let hour of hoursOfDay" class="hour-cell">
-              {{ formatHour(hour) }}
-            </div>
-          </div>
-          
-          <div class="days-container">
-            <div *ngFor="let date of daysInWeek" class="day-column">            <div *ngFor="let hour of hoursOfDay" 
-                 class="hour-cell" 
-                 libDropZone
-                 [date]="date"
-                 [hour]="hour"
-                 (itemDropped)="onItemDropped($event)"
-                 (click)="onTimeSlotClick(date, hour)">
-                <!-- Events will be positioned absolutely over these cells -->
+            @for (hour of hoursOfDay; track hour) {
+              <div class="hour-cell">
+                {{ formatHour(hour) }}
               </div>
-                <!-- Events for the day -->
-              <lib-draggable-event
-                *ngFor="let event of getEventsForDate(date)"
-                [event]="event"
-                [showResizeHandle]="true"
-                [style.position]="'absolute'"
-                [style.top.px]="calculateEventTop(event, date)"
-                [style.height.px]="calculateEventHeight(event, date)"
-                [style.width.calc]="getEventMultiDayPosition(event, date) === 'start' || getEventMultiDayPosition(event, date) === 'middle' ? 'calc(100% + 2px)' : 'calc(100% - 4px)'"
-                [class.event-start]="getEventMultiDayPosition(event, date) === 'start'"
-                [class.event-middle]="getEventMultiDayPosition(event, date) === 'middle'"
-                [class.event-end]="getEventMultiDayPosition(event, date) === 'end'"
-                (click)="onEventClick(event, $event)"
-                (dragStart)="onDragStart($event)"
-                (dragEnd)="onDragEnd($event, date)"
-                (resizeStart)="onResizeStart($event)"
-                (resizeEnd)="onResizeEnd($event)">
-                {{ event.title }}
-              </lib-draggable-event>
-            </div>
+            }
           </div>
+          <div class="days-container">
+            @for (date of daysInWeek; track date) {
+              <div class="day-column">            @for (hour of hoursOfDay; track hour) {
+                <div
+                  class="hour-cell"
+                  libDropZone
+                  [date]="date"
+                  [hour]="hour"
+                  (itemDropped)="onItemDropped($event)"
+                  (click)="onTimeSlotClick(date, hour)">
+                  <!-- Events will be positioned absolutely over these cells -->
+                </div>
+              }
+              <!-- Events for the day -->
+              @for (event of getEventsForDate(date); track event) {
+                <lib-draggable-event
+                  [event]="event"
+                  [showResizeHandle]="true"
+                  [style.position]="'absolute'"
+                  [style.top.px]="calculateEventTop(event, date)"
+                  [style.height.px]="calculateEventHeight(event, date)"
+                  [style.width.calc]="getEventMultiDayPosition(event, date) === 'start' || getEventMultiDayPosition(event, date) === 'middle' ? 'calc(100% + 2px)' : 'calc(100% - 4px)'"
+                  [class.event-start]="getEventMultiDayPosition(event, date) === 'start'"
+                  [class.event-middle]="getEventMultiDayPosition(event, date) === 'middle'"
+                  [class.event-end]="getEventMultiDayPosition(event, date) === 'end'"
+                  (click)="onEventClick(event, $event)"
+                  (dragStart)="onDragStart($event)"
+                  (dragEnd)="onDragEnd($event, date)"
+                  (resizeStart)="onResizeStart($event)"
+                  (resizeEnd)="onResizeEnd($event)">
+                  {{ event.title }}
+                </lib-draggable-event>
+              }
+            </div>
+          }
         </div>
       </div>
-      
-      <!-- Day View -->
-      <div *ngIf="currentView === 'day'" class="calendar-day-view">
+    </div>
+    }
+    
+    <!-- Day View -->
+    @if (currentView === 'day') {
+      <div class="calendar-day-view">
         <div class="day-header">
           <div class="time-gutter"></div>
           <div class="day-title" [class.today]="isToday(selectedDate)">
@@ -142,96 +158,100 @@ import { DropZoneDirective } from './drop-zone.directive';
             <div class="date-number">{{ selectedDate.getDate() }}</div>
           </div>
         </div>
-        
         <div class="day-body">
           <div class="time-gutter">
-            <div *ngFor="let hour of hoursOfDay" class="hour-cell">
-              {{ formatHour(hour) }}
-            </div>
+            @for (hour of hoursOfDay; track hour) {
+              <div class="hour-cell">
+                {{ formatHour(hour) }}
+              </div>
+            }
           </div>
-          
-          <div class="day-column">            <div *ngFor="let hour of hoursOfDay" 
-                 class="hour-cell" 
-                 libDropZone
-                 [date]="selectedDate"
-                 [hour]="hour"
-                 (itemDropped)="onItemDropped($event)"
-                 (click)="onTimeSlotClick(selectedDate, hour)">
+          <div class="day-column">            @for (hour of hoursOfDay; track hour) {
+            <div
+              class="hour-cell"
+              libDropZone
+              [date]="selectedDate"
+              [hour]="hour"
+              (itemDropped)="onItemDropped($event)"
+              (click)="onTimeSlotClick(selectedDate, hour)">
               <!-- Time slot -->
             </div>
-              <!-- Events for the day -->            <lib-draggable-event
-                *ngFor="let event of getEventsForDate(selectedDate)"
-                [event]="event"
-                [showResizeHandle]="true"                [style.position]="'absolute'"
-                [style.top.px]="calculateEventTop(event, selectedDate)"
-                [style.height.px]="calculateEventHeight(event, selectedDate)"
-                [style.width.calc]="getEventMultiDayPosition(event, selectedDate) === 'start' || getEventMultiDayPosition(event, selectedDate) === 'middle' ? 'calc(100% + 2px)' : 'calc(100% - 4px)'"
-                [class.event-start]="getEventMultiDayPosition(event, selectedDate) === 'start'"
-                [class.event-middle]="getEventMultiDayPosition(event, selectedDate) === 'middle'"
-                [class.event-end]="getEventMultiDayPosition(event, selectedDate) === 'end'"
-                (click)="onEventClick(event, $event)"
-                (dragStart)="onDragStart($event)"
-                (dragEnd)="onDragEnd($event, selectedDate)"
-                (resizeStart)="onResizeStart($event)"
-                (resizeEnd)="onResizeEnd($event)">
-              <div class="event-title">{{ event.title }}</div>
-              <div class="event-time">{{ formatEventTime(event) }}</div>
-              <div *ngIf="event.description" class="event-description">{{ event.description }}</div>
-            </lib-draggable-event>
-          </div>
-        </div>
+          }
+          <!-- Events for the day -->            @for (event of getEventsForDate(selectedDate); track event) {
+          <lib-draggable-event
+            [event]="event"
+            [showResizeHandle]="true"                [style.position]="'absolute'"
+            [style.top.px]="calculateEventTop(event, selectedDate)"
+            [style.height.px]="calculateEventHeight(event, selectedDate)"
+            [style.width.calc]="getEventMultiDayPosition(event, selectedDate) === 'start' || getEventMultiDayPosition(event, selectedDate) === 'middle' ? 'calc(100% + 2px)' : 'calc(100% - 4px)'"
+            [class.event-start]="getEventMultiDayPosition(event, selectedDate) === 'start'"
+            [class.event-middle]="getEventMultiDayPosition(event, selectedDate) === 'middle'"
+            [class.event-end]="getEventMultiDayPosition(event, selectedDate) === 'end'"
+            (click)="onEventClick(event, $event)"
+            (dragStart)="onDragStart($event)"
+            (dragEnd)="onDragEnd($event, selectedDate)"
+            (resizeStart)="onResizeStart($event)"
+            (resizeEnd)="onResizeEnd($event)">
+            <div class="event-title">{{ event.title }}</div>
+            <div class="event-time">{{ formatEventTime(event) }}</div>
+            @if (event.description) {
+              <div class="event-description">{{ event.description }}</div>
+            }
+          </lib-draggable-event>
+        }
       </div>
-      
-      <!-- New Event Form -->
-      <div *ngIf="showEventForm" class="event-form-overlay" (click)="closeEventForm()">
+    </div>
+    </div>
+    }
+    
+    <!-- New Event Form -->
+    @if (showEventForm) {
+      <div class="event-form-overlay" (click)="closeEventForm()">
         <div class="event-form" (click)="$event.stopPropagation()">
           <h3>{{ editMode ? 'Edit Event' : 'New Event' }}</h3>
-          
           <div class="form-group">
             <label for="eventTitle">Title</label>
             <input type="text" id="eventTitle" [(ngModel)]="newEvent.title" placeholder="Event Title" required>
           </div>
-          
           <div class="form-group">
             <label for="eventDescription">Description</label>
             <textarea id="eventDescription" [(ngModel)]="newEvent.description" placeholder="Event Description"></textarea>
           </div>
-          
           <div class="form-row">
             <div class="form-group">
               <label for="eventStart">Start</label>
               <input type="datetime-local" id="eventStart" [ngModel]="formatDateForInput(newEvent.start)" (ngModelChange)="updateStartDate($event)">
             </div>
-            
             <div class="form-group">
               <label for="eventEnd">End</label>
               <input type="datetime-local" id="eventEnd" [ngModel]="formatDateForInput(newEvent.end)" (ngModelChange)="updateEndDate($event)">
             </div>
           </div>
-            <div class="form-group checkbox-group">
+          <div class="form-group checkbox-group">
             <input type="checkbox" id="allDayEvent" [(ngModel)]="newEvent.allDay">
             <label for="allDayEvent">All Day Event</label>
           </div>
-          
           <div class="form-group checkbox-group">
             <input type="checkbox" id="draggableEvent" [(ngModel)]="newEvent.draggable">
             <label for="draggableEvent">Movable Event</label>
           </div>
-          
           <div class="form-group">
             <label for="eventColor">Color</label>
             <input type="color" id="eventColor" [(ngModel)]="eventColorInput" (change)="updateEventColor()">
           </div>
-          
           <div class="form-actions">
             <button class="btn cancel-btn" (click)="closeEventForm()">Cancel</button>
-            <button *ngIf="editMode && newEvent.deletable !== false" class="btn delete-btn" (click)="deleteEvent()">Delete</button>
+            @if (editMode && newEvent.deletable !== false) {
+              <button class="btn delete-btn" (click)="deleteEvent()">Delete</button>
+            }
             <button class="btn save-btn" (click)="saveEvent()">Save</button>
           </div>
         </div>
       </div>
+    }
     </div>
-  `,
+    `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .calendar-container {
       font-family: Arial, sans-serif;

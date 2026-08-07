@@ -1,13 +1,13 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { CalendarComponent } from '../../../angular-calendar-lib/src/lib/calendar.component';
-import { CalendarService, CalendarEvent } from '../../../angular-calendar-lib/src/lib/calendar.service';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+
+import { CalendarComponent, CalendarEvent, CalendarService } from '@groooh/angular-calendar';
 
 @Component({
   selector: 'app-root',  
   standalone: true,
-  imports: [CommonModule, CalendarComponent],
+  imports: [CalendarComponent],
   templateUrl: './app.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app.component.scss'
 })
 export class AppComponent {

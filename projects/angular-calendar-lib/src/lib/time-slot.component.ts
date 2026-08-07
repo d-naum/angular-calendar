@@ -1,10 +1,10 @@
-import { Component, ElementRef, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, ElementRef, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+
 
 @Component({
   selector: 'lib-time-slot',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div class="time-slot"
       [class.current-hour]="isCurrentHour"
@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
       <ng-content></ng-content>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .time-slot {
       height: 60px;
