@@ -254,20 +254,26 @@ import { DropZoneDirective } from './drop-zone.directive';
   changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .calendar-container {
-      font-family: Arial, sans-serif;
-      background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      padding: 16px;
+      --calendar-accent: #2563eb;
+      --calendar-ink: #172033;
+      --calendar-muted: #64748b;
+      --calendar-line: #e2e8f0;
+      font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+      background-color: #ffffff;
+      border: 1px solid var(--calendar-line);
+      border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+      padding: 20px;
       box-sizing: border-box;
       position: relative;
+      color: var(--calendar-ink);
     }
     
     .calendar-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       flex-wrap: wrap;
       gap: 10px;
     }
@@ -275,54 +281,70 @@ import { DropZoneDirective } from './drop-zone.directive';
     .calendar-navigation {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
     
     .calendar-title {
       margin: 0;
-      font-size: 1.5rem;
+      font-size: 1.125rem;
+      font-weight: 650;
       min-width: 200px;
       text-align: center;
     }
     
     .nav-btn, .view-btn, .today-btn {
-      padding: 8px 12px;
-      background-color: #f5f5f5;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      min-height: 34px;
+      padding: 7px 11px;
+      background-color: #ffffff;
+      border: 1px solid var(--calendar-line);
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 0.9rem;
+      color: #475569;
+      font-size: 0.8125rem;
+      font-weight: 600;
       outline: none;
+      transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
     }
     
     .nav-btn:hover, .view-btn:hover, .today-btn:hover {
-      background-color: #e9e9e9;
+      background-color: #f8fafc;
+      border-color: #cbd5e1;
+      color: var(--calendar-ink);
     }
     
     .calendar-view-selector {
       display: flex;
-      gap: 4px;
+      gap: 2px;
+      padding: 2px;
+      border: 1px solid var(--calendar-line);
+      border-radius: 8px;
+      background: #f8fafc;
     }
     
     .view-btn.active {
-      background-color: #3788d8;
+      background-color: var(--calendar-accent);
       color: white;
-      border-color: #3788d8;
+      border-color: var(--calendar-accent);
+      box-shadow: 0 1px 2px rgba(37, 99, 235, 0.24);
     }
     
     .weekdays-header {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       text-align: center;
-      font-weight: bold;
-      border-bottom: 1px solid #eee;
-      padding: 8px 0;
-      gap: 1px; /* Added to match month-grid gap */
+      color: var(--calendar-muted);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--calendar-line);
+      padding: 10px 0;
+      gap: 1px;
     }
     
     .weekdays-header .weekday {
-      padding: 8px;
-      box-sizing: border-box; /* Added for consistent width calculation */
+      padding: 6px;
+      box-sizing: border-box;
     }
     
     /* Month View */
@@ -330,63 +352,63 @@ import { DropZoneDirective } from './drop-zone.directive';
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 1px;
-      background-color: #f0f0f0;
-      border: 1px solid #f0f0f0;
+      background-color: var(--calendar-line);
+      border: 1px solid var(--calendar-line);
     }
     
     .calendar-day {
       min-height: 100px;
-      background-color: #fff;
-      padding: 4px;
+      background-color: #ffffff;
+      padding: 8px;
       display: flex;
       flex-direction: column;
       cursor: pointer;
-      box-sizing: border-box; /* Ensures padding and border are included in the element's total width and height */
-      min-width: 0; /* Ensures grid columns maintain equal width regardless of content */
+      box-sizing: border-box;
+      min-width: 0;
     }
     
     .calendar-day:hover {
-      background-color: #f9f9f9;
+      background-color: #f8fafc;
     }
     
     .calendar-day.today {
-      background-color: #fcf8e3;
+      background-color: #eff6ff;
     }
     
     .calendar-day.selected {
-      background-color: #d9edf7;
+      background-color: #dbeafe;
     }
     
     .calendar-day:not(.current-month) {
-      color: #ccc;
-      background-color: #f9f9f9;
+      color: #94a3b8;
+      background-color: #f8fafc;
     }
     
     .date-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     
     .date-number {
-      font-weight: bold;
-      font-size: 0.9rem;
+      font-weight: 650;
+      font-size: 0.8125rem;
     }
     
     .add-event-btn {
       visibility: hidden;
-      background-color: #3788d8;
+      background-color: var(--calendar-accent);
       color: white;
       border: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 16px;
       padding: 0;
     }
     
@@ -399,7 +421,7 @@ import { DropZoneDirective } from './drop-zone.directive';
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
     }
     
     .event-item {
@@ -418,9 +440,10 @@ import { DropZoneDirective } from './drop-zone.directive';
     
     .more-events {
       font-size: 0.8rem;
-      color: #888;
-      margin-top: 2px;
-      text-align: center;
+      color: var(--calendar-accent);
+      margin-top: 4px;
+      text-align: left;
+      font-weight: 600;
     }
     
     /* Week View */
@@ -436,13 +459,13 @@ import { DropZoneDirective } from './drop-zone.directive';
     
     .time-gutter {
       width: 60px;
-      border-right: 1px solid #eee;
+      border-right: 1px solid var(--calendar-line);
     }
     
     .hour-cell {
       height: 60px;
-      border-bottom: 1px solid #eee;
-      padding: 2px 4px;
+      border-bottom: 1px solid var(--calendar-line);
+      padding: 2px 6px;
       position: relative;
       box-sizing: border-box; /* Ensure padding and border are within the height */
     }
@@ -451,7 +474,7 @@ import { DropZoneDirective } from './drop-zone.directive';
       text-align: right;
       padding-right: 8px;
       font-size: 0.8rem;
-      color: #666;
+      color: var(--calendar-muted);
     }
     
     .days-container {
@@ -461,9 +484,9 @@ import { DropZoneDirective } from './drop-zone.directive';
     }
       .day-column {
       position: relative;
-      border-right: 1px solid #eee;
-      overflow: visible; /* Allow multi-day events to cross column boundaries */
-      z-index: 1; /* Ensure proper stacking context for events */
+      border-right: 1px solid var(--calendar-line);
+      overflow: visible;
+      z-index: 1;
     }
     
     .day-column:last-child {
@@ -488,7 +511,7 @@ import { DropZoneDirective } from './drop-zone.directive';
       grid-template-columns: 60px 1fr;
       text-align: center;
       font-weight: bold;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid var(--calendar-line);
     }
     
     .day-body {
@@ -541,31 +564,36 @@ import { DropZoneDirective } from './drop-zone.directive';
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: rgba(0, 0, 0, 0.5);
+      background-color: rgba(15, 23, 42, 0.42);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 1000;
+      padding: 20px;
+      box-sizing: border-box;
     }
     
     .event-form {
       background-color: white;
-      border-radius: 8px;
-      padding: 20px;
+      border-radius: 12px;
+      padding: 28px;
       width: 90%;
-      max-width: 500px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      max-width: 520px;
+      box-shadow: 0 24px 64px rgba(15, 23, 42, 0.22);
+      border: 1px solid rgba(226, 232, 240, 0.9);
     }
     
     .event-form h3 {
-      margin-top: 0;
-      margin-bottom: 16px;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 8px;
+      margin: 0 0 24px;
+      border-bottom: 1px solid var(--calendar-line);
+      padding-bottom: 16px;
+      color: var(--calendar-ink);
+      font-size: 1.125rem;
+      font-weight: 700;
     }
     
     .form-group {
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
     
     .form-row {
@@ -581,22 +609,34 @@ import { DropZoneDirective } from './drop-zone.directive';
     
     .form-group label {
       display: block;
-      margin-bottom: 4px;
-      font-weight: bold;
-      font-size: 0.9rem;
+      margin-bottom: 7px;
+      color: #475569;
+      font-weight: 600;
+      font-size: 0.8125rem;
     }
     
     .form-group input, .form-group textarea {
       width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      min-height: 38px;
+      padding: 9px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
       box-sizing: border-box;
-      font-size: 0.9rem;
+      color: var(--calendar-ink);
+      background: #ffffff;
+      font: inherit;
+      font-size: 0.875rem;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--calendar-accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+      outline: none;
     }
     
     .form-group textarea {
-      height: 80px;
+      min-height: 88px;
       resize: vertical;
     }
     
@@ -604,10 +644,13 @@ import { DropZoneDirective } from './drop-zone.directive';
       display: flex;
       align-items: center;
       gap: 8px;
+      margin-bottom: 12px;
     }
     
     .checkbox-group input {
       width: auto;
+      min-height: auto;
+      accent-color: var(--calendar-accent);
     }
     
     .checkbox-group label {
@@ -618,32 +661,44 @@ import { DropZoneDirective } from './drop-zone.directive';
       display: flex;
       justify-content: flex-end;
       gap: 8px;
-      margin-top: 16px;
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--calendar-line);
     }
     
     .btn {
-      padding: 8px 16px;
-      border-radius: 4px;
+      min-height: 38px;
+      padding: 8px 15px;
+      border-radius: 6px;
       cursor: pointer;
       border: none;
-      font-size: 0.9rem;
+      font: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: background-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
     }
     
     .save-btn {
-      background-color: #3788d8;
+      background-color: var(--calendar-accent);
       color: white;
+      box-shadow: 0 1px 2px rgba(37, 99, 235, 0.24);
     }
     
     .cancel-btn {
-      background-color: #f5f5f5;
-      border: 1px solid #ddd;
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
     }
     
     .delete-btn {
-      background-color: #dc3545;
+      background-color: #dc2626;
       color: white;
       margin-right: auto;
     }
+
+    .btn:hover { transform: translateY(-1px); }
+    .save-btn:hover { background-color: #1d4ed8; }
+    .cancel-btn:hover { background-color: #f8fafc; }
+    .delete-btn:hover { background-color: #b91c1c; }
     
     /* Draggable event styles */
     ::ng-deep .calendar-month-view lib-draggable-event {

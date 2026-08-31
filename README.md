@@ -26,6 +26,16 @@ To run the demo application:
 2.  Build the library (if not already built or if changes were made): `ng build angular-calendar-lib`
 3.  Serve the demo application: `ng serve demo-app`
 
+### Deploy the Demo to Vercel
+
+The demo is ready for static deployment. Import this repository into Vercel and set the project Root Directory to `my-library-workspace` if the repository contains the parent folder. Vercel reads `vercel.json`, runs `npm run build`, and publishes `dist/demo-app/browser` with a single-page application fallback.
+
+For local production verification, run:
+
+```bash
+npm run build
+```
+
 ## Development
 
 ### Build Library

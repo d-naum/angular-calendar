@@ -1,47 +1,47 @@
 <!-- Demo App for Angular Calendar Library -->
 
-<div class="demo-container">
-  <header>
-    <h1>{{ title }}</h1>
-    <p class="description">A feature-rich calendar component for event management</p>
+<main class="demo-container">
+  <header class="demo-header">
+    <div>
+      <h1>{{ title }}</h1>
+      <p class="description">Production-ready calendar interactions, grouped into publishable examples for <a href="https://www.npmjs.com/package/@groooh/angular-calendar" target="_blank" rel="noopener noreferrer">@groooh/angular-calendar</a>.</p>
+    </div>
+    <a class="package-link" href="https://www.npmjs.com/package/@groooh/angular-calendar" target="_blank" rel="noopener noreferrer">@groooh/angular-calendar on npm</a>
   </header>
 
-  <!-- Calendar Component Demo Section -->
-  <div class="calendar-demo-section">
-    <div class="calendar-container">
-      <lib-calendar
-        [defaultView]="'month'"
-        [hourFormat]="'12'"
-        [startHour]="0"
-        [endHour]="23"
-        [defaultEventColor]="'#3788d8'"
-        (eventCreated)="handleEventCreated($event)"
-        (eventUpdated)="handleEventUpdated($event)" 
-        (eventDeleted)="handleEventDeleted($event)"
-        (dateSelected)="handleDateSelected($event)">
-      </lib-calendar>
-    </div>
-    
-    <div class="feature-summary">
-      <h3>Key Features</h3>
-      <div class="features-grid">
-        <div class="feature-card">
-          <h4>✓ Multiple Views</h4>
-          <p>Month, week, and day views</p>
-        </div>
-        <div class="feature-card">
-          <h4>✓ Drag &amp; Drop</h4>
-          <p>Easily move and resize events</p>
-        </div>
-        <div class="feature-card">
-          <h4>✓ All-Day Events</h4>
-          <p>Special handling for all-day events</p>
-        </div>
-        <div class="feature-card">
-          <h4>✓ Event Restrictions</h4>
-          <p>Prevents events on days with all-day events</p>
-        </div>
+  <section class="demo-picker" aria-label="Calendar demos">
+    @for (demo of demos; track demo.id) {
+      <button type="button" class="demo-option" [class.active]="demo.id === selectedDemoId" (click)="selectDemo(demo.id)">
+        <strong>{{ demo.title }}</strong>
+        <span>{{ demo.description }}</span>
+      </button>
+    }
+  </section>
+
+  <section class="calendar-demo-section">
+    <div class="demo-context">
+      <div>
+        <p class="eyebrow">Live demo</p>
+        <h2>{{ selectedDemo.title }}</h2>
+        <p>{{ selectedDemo.description }}</p>
       </div>
+      <span class="view-badge">{{ selectedDemo.view }} view</span>
     </div>
-  </div>
-</div>
+    <div class="calendar-container">
+      @if (calendarVisible) {
+        <lib-calendar
+          [defaultView]="selectedDemo.view"
+          [hourFormat]="selectedDemo.hourFormat"
+          [startHour]="selectedDemo.startHour"
+          [endHour]="selectedDemo.endHour"
+          [maxEventsPerDay]="selectedDemo.maxEventsPerDay"
+          [defaultEventColor]="'#2563eb'"
+          (eventCreated)="handleEventCreated($event)"
+          (eventUpdated)="handleEventUpdated($event)"
+          (eventDeleted)="handleEventDeleted($event)"
+          (dateSelected)="handleDateSelected($event)">
+        </lib-calendar>
+      }
+    </div>
+  </section>
+</main>
