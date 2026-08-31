@@ -1,9 +1,28 @@
 {
   "name": "@groooh/angular-calendar",
-  "version": "0.0.2",
+  "version": "0.0.3",
+  "description": "Feature-rich Angular calendar with month, week, and day views, event management, drag and drop, and recurrence support.",
+  "keywords": [
+    "angular",
+    "angular-calendar",
+    "calendar",
+    "calendar-component",
+    "event-calendar",
+    "event-management",
+    "drag-and-drop",
+    "recurrence",
+    "month-view",
+    "week-view",
+    "day-view"
+  ],
+  "author": {
+    "name": "Groooh",
+    "url": "https://www.groooh.com"
+  },
   "peerDependencies": {
-    "@angular/common": "^19.2.0",
-    "@angular/core": "^19.2.0"
+    "@angular/common": "^22.1.0",
+    "@angular/core": "^22.1.0",
+    "@angular/forms": "^22.1.0"
   },
   "dependencies": {
     "tslib": "^2.3.0"

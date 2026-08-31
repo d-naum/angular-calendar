@@ -9,14 +9,14 @@ jobs:
     permissions: 
       contents: write 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Required to push tags
 
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18' # Or your preferred Node.js version
+          node-version: '24.15.0'
           registry-url: 'https://registry.npmjs.org/'
 
       - name: Configure Git
@@ -57,7 +57,7 @@ jobs:
         run: npm ci
 
       - name: Build the library
-        run: npm run build angular-calendar-lib # This was confirmed from your previous version
+        run: npm run build:library
       - name: Publish to npmjs
         working-directory: dist/angular-calendar-lib # This was confirmed from your previous version
         run: npm publish --access public

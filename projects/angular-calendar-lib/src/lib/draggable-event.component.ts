@@ -1,11 +1,11 @@
-import { Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CalendarEvent } from './calendar.service';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'lib-draggable-event',
   standalone: true,
-  imports: [CommonModule],  template: `
+  imports: [],  template: `
     <div class="draggable-event"
       [class.dragging]="isDragging"
       [style.backgroundColor]="event.color?.primary || '#3788d8'"
@@ -18,31 +18,36 @@ import { CommonModule } from '@angular/common';
       (dragend)="handleDragEnd($event)"
       (click)="handleClick($event)">
       <ng-content></ng-content>
-      
-      <div *ngIf="event.resizable && showResizeHandle" 
-        class="resize-handle"
-        (mousedown)="onResizeStart($event)">
-        ⋮
-      </div>
+    
+      @if (event.resizable && showResizeHandle) {
+        <div
+          class="resize-handle"
+          (mousedown)="onResizeStart($event)">
+          ⋮
+        </div>
+      }
     </div>
-  `,
+    `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .draggable-event {
-      padding: 4px 8px;
-      border-radius: 4px;
-      margin-bottom: 2px;
+      padding: 5px 8px;
+      border-radius: 5px;
+      margin-bottom: 3px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       position: relative;
-      border-left: 3px solid;
+      border-left: 3px solid rgba(255, 255, 255, 0.72);
       user-select: none;
-      transition: box-shadow 0.2s ease;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.14);
+      transition: box-shadow 0.16s ease, transform 0.16s ease;
     }
     
     .draggable-event.dragging {
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      opacity: 0.8;
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.24);
+      opacity: 0.9;
+      transform: scale(1.015);
       cursor: grabbing !important;
       z-index: 100;
     }

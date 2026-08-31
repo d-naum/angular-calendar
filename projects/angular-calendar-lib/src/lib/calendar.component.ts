@@ -1,5 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, Output, EventEmitter, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { CalendarEvent, CalendarService, CalendarViewMode, DateRange } from './calendar.service';
 import { DraggableEventComponent } from './draggable-event.component';
@@ -7,7 +7,7 @@ import { DropZoneDirective } from './drop-zone.directive';
 
 @Component({
   selector: 'lib-calendar',  standalone: true,
-  imports: [CommonModule, FormsModule, DraggableEventComponent, DropZoneDirective],
+  imports: [FormsModule, DraggableEventComponent, DropZoneDirective],
   template: `
     <div class="calendar-container">
       <div class="calendar-header">
@@ -16,125 +16,141 @@ import { DropZoneDirective } from './drop-zone.directive';
           <h2 class="calendar-title">{{ getHeaderTitle() }}</h2>
           <button class="nav-btn" (click)="navigateNext()">&gt;</button>
         </div>
-        
+    
         <div class="calendar-view-selector">
-          <button 
-            class="view-btn" 
+          <button
+            class="view-btn"
             [class.active]="currentView === 'month'"
-            (click)="setView('month')">Month</button>
-          <button 
-            class="view-btn" 
+          (click)="setView('month')">Month</button>
+          <button
+            class="view-btn"
             [class.active]="currentView === 'week'"
-            (click)="setView('week')">Week</button>
-          <button 
-            class="view-btn" 
+          (click)="setView('week')">Week</button>
+          <button
+            class="view-btn"
             [class.active]="currentView === 'day'"
-            (click)="setView('day')">Day</button>
+          (click)="setView('day')">Day</button>
         </div>
-        
+    
         <button class="today-btn" (click)="goToToday()">Today</button>
       </div>
-      
+    
       <!-- Month View -->
-      <div *ngIf="currentView === 'month'" class="calendar-month-view">
-        <div class="weekdays-header">
-          <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
-        </div>
-        
-        <div class="month-grid">          <div 
-            *ngFor="let date of daysInMonth" 
-            class="calendar-day"
-            [class.current-month]="isCurrentMonth(date)"
-            [class.today]="isToday(date)"
-            [class.selected]="isSelected(date)"
-            libDropZone
-            [date]="date"
-            (itemDropped)="onItemDropped($event)"
-            (click)="selectDate(date)">
-            <div class="date-header">
-              <span class="date-number">{{ date.getDate() }}</span>
-              <button 
-                *ngIf="isCurrentMonth(date)"
-                class="add-event-btn" 
-                (click)="openNewEventForm(date, $event)">+</button>
-            </div>
+      @if (currentView === 'month') {
+        <div class="calendar-month-view">
+          <div class="weekdays-header">
+            @for (day of weekDays; track day) {
+              <div class="weekday">{{ day }}</div>
+            }
+          </div>
+          <div class="month-grid">          @for (date of daysInMonth; track date) {
+            <div
+              class="calendar-day"
+              [class.current-month]="isCurrentMonth(date)"
+              [class.today]="isToday(date)"
+              [class.selected]="isSelected(date)"
+              libDropZone
+              [date]="date"
+              (itemDropped)="onItemDropped($event)"
+              (click)="selectDate(date)">
+              <div class="date-header">
+                <span class="date-number">{{ date.getDate() }}</span>
+                @if (isCurrentMonth(date)) {
+                  <button
+                    class="add-event-btn"
+                  (click)="openNewEventForm(date, $event)">+</button>
+                }
+              </div>
               <div class="events-container">
-              <lib-draggable-event
-                *ngFor="let event of getEventsForDate(date)"
-                [event]="event"
-                [class.event-start]="getEventMultiDayPosition(event, date) === 'start'"
-                [class.event-middle]="getEventMultiDayPosition(event, date) === 'middle'"
-                [class.event-end]="getEventMultiDayPosition(event, date) === 'end'"
-                (click)="onEventClick(event, $event)"
-                (dragStart)="onDragStart($event)"
-                (dragEnd)="onDragEnd($event, date)">
-                {{ event.title }}
-              </lib-draggable-event>
-              
-              <div *ngIf="getEventsForDate(date).length > maxEventsPerDay" class="more-events">
-                +{{ getEventsForDate(date).length - maxEventsPerDay }} more
+                @for (event of getEventsForDate(date); track event) {
+                  <lib-draggable-event
+                    [event]="event"
+                    [class.event-start]="getEventMultiDayPosition(event, date) === 'start'"
+                    [class.event-middle]="getEventMultiDayPosition(event, date) === 'middle'"
+                    [class.event-end]="getEventMultiDayPosition(event, date) === 'end'"
+                    (click)="onEventClick(event, $event)"
+                    (dragStart)="onDragStart($event)"
+                    (dragEnd)="onDragEnd($event, date)">
+                    {{ event.title }}
+                  </lib-draggable-event>
+                }
+                @if (getEventsForDate(date).length > maxEventsPerDay) {
+                  <div class="more-events">
+                    +{{ getEventsForDate(date).length - maxEventsPerDay }} more
+                  </div>
+                }
               </div>
             </div>
-          </div>
+          }
         </div>
       </div>
-      
-      <!-- Week View -->
-      <div *ngIf="currentView === 'week'" class="calendar-week-view">
+    }
+    
+    <!-- Week View -->
+    @if (currentView === 'week') {
+      <div class="calendar-week-view">
         <div class="weekdays-header">
           <div class="time-gutter"></div>
-          <div 
-            *ngFor="let date of daysInWeek" 
-            class="weekday"
-            [class.today]="isToday(date)">
-            <div>{{ getDayName(date) }}</div>
-            <div class="date-number">{{ date.getDate() }}</div>
-          </div>
+          @for (date of daysInWeek; track date) {
+            <div
+              class="weekday"
+              [class.today]="isToday(date)">
+              <div>{{ getDayName(date) }}</div>
+              <div class="date-number">{{ date.getDate() }}</div>
+            </div>
+          }
         </div>
-        
         <div class="week-body">
           <div class="time-gutter">
-            <div *ngFor="let hour of hoursOfDay" class="hour-cell">
-              {{ formatHour(hour) }}
-            </div>
-          </div>
-          
-          <div class="days-container">
-            <div *ngFor="let date of daysInWeek" class="day-column">            <div *ngFor="let hour of hoursOfDay" 
-                 class="hour-cell" 
-                 libDropZone
-                 [date]="date"
-                 [hour]="hour"
-                 (itemDropped)="onItemDropped($event)"
-                 (click)="onTimeSlotClick(date, hour)">
-                <!-- Events will be positioned absolutely over these cells -->
+            @for (hour of hoursOfDay; track hour) {
+              <div class="hour-cell">
+                {{ formatHour(hour) }}
               </div>
-                <!-- Events for the day -->
-              <lib-draggable-event
-                *ngFor="let event of getEventsForDate(date)"
-                [event]="event"
-                [showResizeHandle]="true"
-                [style.position]="'absolute'"
-                [style.top.px]="calculateEventTop(event, date)"
-                [style.height.px]="calculateEventHeight(event, date)"
-                [style.width.calc]="getEventMultiDayPosition(event, date) === 'start' || getEventMultiDayPosition(event, date) === 'middle' ? 'calc(100% + 2px)' : 'calc(100% - 4px)'"
-                [class.event-start]="getEventMultiDayPosition(event, date) === 'start'"
-                [class.event-middle]="getEventMultiDayPosition(event, date) === 'middle'"
-                [class.event-end]="getEventMultiDayPosition(event, date) === 'end'"
-                (click)="onEventClick(event, $event)"
-                (dragStart)="onDragStart($event)"
-                (dragEnd)="onDragEnd($event, date)"
-                (resizeStart)="onResizeStart($event)"
-                (resizeEnd)="onResizeEnd($event)">
-                {{ event.title }}
-              </lib-draggable-event>
-            </div>
+            }
           </div>
+          <div class="days-container">
+            @for (date of daysInWeek; track date) {
+              <div class="day-column">            @for (hour of hoursOfDay; track hour) {
+                <div
+                  class="hour-cell"
+                  libDropZone
+                  [date]="date"
+                  [hour]="hour"
+                  (itemDropped)="onItemDropped($event)"
+                  (click)="onTimeSlotClick(date, hour)">
+                  <!-- Events will be positioned absolutely over these cells -->
+                </div>
+              }
+              <!-- Events for the day -->
+              @for (event of getEventsForDate(date); track event) {
+                <lib-draggable-event
+                  [event]="event"
+                  [showResizeHandle]="true"
+                  [style.position]="'absolute'"
+                  [style.top.px]="calculateEventTop(event, date)"
+                  [style.height.px]="calculateEventHeight(event, date)"
+                  [style.width.calc]="getEventMultiDayPosition(event, date) === 'start' || getEventMultiDayPosition(event, date) === 'middle' ? 'calc(100% + 2px)' : 'calc(100% - 4px)'"
+                  [class.event-start]="getEventMultiDayPosition(event, date) === 'start'"
+                  [class.event-middle]="getEventMultiDayPosition(event, date) === 'middle'"
+                  [class.event-end]="getEventMultiDayPosition(event, date) === 'end'"
+                  (click)="onEventClick(event, $event)"
+                  (dragStart)="onDragStart($event)"
+                  (dragEnd)="onDragEnd($event, date)"
+                  (resizeStart)="onResizeStart($event)"
+                  (resizeEnd)="onResizeEnd($event)">
+                  {{ event.title }}
+                </lib-draggable-event>
+              }
+            </div>
+          }
         </div>
       </div>
-      
-      <!-- Day View -->
-      <div *ngIf="currentView === 'day'" class="calendar-day-view">
+    </div>
+    }
+    
+    <!-- Day View -->
+    @if (currentView === 'day') {
+      <div class="calendar-day-view">
         <div class="day-header">
           <div class="time-gutter"></div>
           <div class="day-title" [class.today]="isToday(selectedDate)">
@@ -142,112 +158,122 @@ import { DropZoneDirective } from './drop-zone.directive';
             <div class="date-number">{{ selectedDate.getDate() }}</div>
           </div>
         </div>
-        
         <div class="day-body">
           <div class="time-gutter">
-            <div *ngFor="let hour of hoursOfDay" class="hour-cell">
-              {{ formatHour(hour) }}
-            </div>
+            @for (hour of hoursOfDay; track hour) {
+              <div class="hour-cell">
+                {{ formatHour(hour) }}
+              </div>
+            }
           </div>
-          
-          <div class="day-column">            <div *ngFor="let hour of hoursOfDay" 
-                 class="hour-cell" 
-                 libDropZone
-                 [date]="selectedDate"
-                 [hour]="hour"
-                 (itemDropped)="onItemDropped($event)"
-                 (click)="onTimeSlotClick(selectedDate, hour)">
+          <div class="day-column">            @for (hour of hoursOfDay; track hour) {
+            <div
+              class="hour-cell"
+              libDropZone
+              [date]="selectedDate"
+              [hour]="hour"
+              (itemDropped)="onItemDropped($event)"
+              (click)="onTimeSlotClick(selectedDate, hour)">
               <!-- Time slot -->
             </div>
-              <!-- Events for the day -->            <lib-draggable-event
-                *ngFor="let event of getEventsForDate(selectedDate)"
-                [event]="event"
-                [showResizeHandle]="true"                [style.position]="'absolute'"
-                [style.top.px]="calculateEventTop(event, selectedDate)"
-                [style.height.px]="calculateEventHeight(event, selectedDate)"
-                [style.width.calc]="getEventMultiDayPosition(event, selectedDate) === 'start' || getEventMultiDayPosition(event, selectedDate) === 'middle' ? 'calc(100% + 2px)' : 'calc(100% - 4px)'"
-                [class.event-start]="getEventMultiDayPosition(event, selectedDate) === 'start'"
-                [class.event-middle]="getEventMultiDayPosition(event, selectedDate) === 'middle'"
-                [class.event-end]="getEventMultiDayPosition(event, selectedDate) === 'end'"
-                (click)="onEventClick(event, $event)"
-                (dragStart)="onDragStart($event)"
-                (dragEnd)="onDragEnd($event, selectedDate)"
-                (resizeStart)="onResizeStart($event)"
-                (resizeEnd)="onResizeEnd($event)">
-              <div class="event-title">{{ event.title }}</div>
-              <div class="event-time">{{ formatEventTime(event) }}</div>
-              <div *ngIf="event.description" class="event-description">{{ event.description }}</div>
-            </lib-draggable-event>
-          </div>
-        </div>
+          }
+          <!-- Events for the day -->            @for (event of getEventsForDate(selectedDate); track event) {
+          <lib-draggable-event
+            [event]="event"
+            [showResizeHandle]="true"                [style.position]="'absolute'"
+            [style.top.px]="calculateEventTop(event, selectedDate)"
+            [style.height.px]="calculateEventHeight(event, selectedDate)"
+            [style.width.calc]="getEventMultiDayPosition(event, selectedDate) === 'start' || getEventMultiDayPosition(event, selectedDate) === 'middle' ? 'calc(100% + 2px)' : 'calc(100% - 4px)'"
+            [class.event-start]="getEventMultiDayPosition(event, selectedDate) === 'start'"
+            [class.event-middle]="getEventMultiDayPosition(event, selectedDate) === 'middle'"
+            [class.event-end]="getEventMultiDayPosition(event, selectedDate) === 'end'"
+            (click)="onEventClick(event, $event)"
+            (dragStart)="onDragStart($event)"
+            (dragEnd)="onDragEnd($event, selectedDate)"
+            (resizeStart)="onResizeStart($event)"
+            (resizeEnd)="onResizeEnd($event)">
+            <div class="event-title">{{ event.title }}</div>
+            <div class="event-time">{{ formatEventTime(event) }}</div>
+            @if (event.description) {
+              <div class="event-description">{{ event.description }}</div>
+            }
+          </lib-draggable-event>
+        }
       </div>
-      
-      <!-- New Event Form -->
-      <div *ngIf="showEventForm" class="event-form-overlay" (click)="closeEventForm()">
+    </div>
+    </div>
+    }
+    
+    <!-- New Event Form -->
+    @if (showEventForm) {
+      <div class="event-form-overlay" (click)="closeEventForm()">
         <div class="event-form" (click)="$event.stopPropagation()">
           <h3>{{ editMode ? 'Edit Event' : 'New Event' }}</h3>
-          
           <div class="form-group">
             <label for="eventTitle">Title</label>
             <input type="text" id="eventTitle" [(ngModel)]="newEvent.title" placeholder="Event Title" required>
           </div>
-          
           <div class="form-group">
             <label for="eventDescription">Description</label>
             <textarea id="eventDescription" [(ngModel)]="newEvent.description" placeholder="Event Description"></textarea>
           </div>
-          
           <div class="form-row">
             <div class="form-group">
               <label for="eventStart">Start</label>
               <input type="datetime-local" id="eventStart" [ngModel]="formatDateForInput(newEvent.start)" (ngModelChange)="updateStartDate($event)">
             </div>
-            
             <div class="form-group">
               <label for="eventEnd">End</label>
               <input type="datetime-local" id="eventEnd" [ngModel]="formatDateForInput(newEvent.end)" (ngModelChange)="updateEndDate($event)">
             </div>
           </div>
-            <div class="form-group checkbox-group">
+          <div class="form-group checkbox-group">
             <input type="checkbox" id="allDayEvent" [(ngModel)]="newEvent.allDay">
             <label for="allDayEvent">All Day Event</label>
           </div>
-          
           <div class="form-group checkbox-group">
             <input type="checkbox" id="draggableEvent" [(ngModel)]="newEvent.draggable">
             <label for="draggableEvent">Movable Event</label>
           </div>
-          
           <div class="form-group">
             <label for="eventColor">Color</label>
             <input type="color" id="eventColor" [(ngModel)]="eventColorInput" (change)="updateEventColor()">
           </div>
-          
           <div class="form-actions">
             <button class="btn cancel-btn" (click)="closeEventForm()">Cancel</button>
-            <button *ngIf="editMode && newEvent.deletable !== false" class="btn delete-btn" (click)="deleteEvent()">Delete</button>
+            @if (editMode && newEvent.deletable !== false) {
+              <button class="btn delete-btn" (click)="deleteEvent()">Delete</button>
+            }
             <button class="btn save-btn" (click)="saveEvent()">Save</button>
           </div>
         </div>
       </div>
+    }
     </div>
-  `,
+    `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .calendar-container {
-      font-family: Arial, sans-serif;
-      background-color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      padding: 16px;
+      --calendar-accent: #2563eb;
+      --calendar-ink: #172033;
+      --calendar-muted: #64748b;
+      --calendar-line: #e2e8f0;
+      font-family: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+      background-color: #ffffff;
+      border: 1px solid var(--calendar-line);
+      border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+      padding: 20px;
       box-sizing: border-box;
       position: relative;
+      color: var(--calendar-ink);
     }
     
     .calendar-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       flex-wrap: wrap;
       gap: 10px;
     }
@@ -255,54 +281,70 @@ import { DropZoneDirective } from './drop-zone.directive';
     .calendar-navigation {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
     
     .calendar-title {
       margin: 0;
-      font-size: 1.5rem;
+      font-size: 1.125rem;
+      font-weight: 650;
       min-width: 200px;
       text-align: center;
     }
     
     .nav-btn, .view-btn, .today-btn {
-      padding: 8px 12px;
-      background-color: #f5f5f5;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      min-height: 34px;
+      padding: 7px 11px;
+      background-color: #ffffff;
+      border: 1px solid var(--calendar-line);
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 0.9rem;
+      color: #475569;
+      font-size: 0.8125rem;
+      font-weight: 600;
       outline: none;
+      transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
     }
     
     .nav-btn:hover, .view-btn:hover, .today-btn:hover {
-      background-color: #e9e9e9;
+      background-color: #f8fafc;
+      border-color: #cbd5e1;
+      color: var(--calendar-ink);
     }
     
     .calendar-view-selector {
       display: flex;
-      gap: 4px;
+      gap: 2px;
+      padding: 2px;
+      border: 1px solid var(--calendar-line);
+      border-radius: 8px;
+      background: #f8fafc;
     }
     
     .view-btn.active {
-      background-color: #3788d8;
+      background-color: var(--calendar-accent);
       color: white;
-      border-color: #3788d8;
+      border-color: var(--calendar-accent);
+      box-shadow: 0 1px 2px rgba(37, 99, 235, 0.24);
     }
     
     .weekdays-header {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       text-align: center;
-      font-weight: bold;
-      border-bottom: 1px solid #eee;
-      padding: 8px 0;
-      gap: 1px; /* Added to match month-grid gap */
+      color: var(--calendar-muted);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--calendar-line);
+      padding: 10px 0;
+      gap: 1px;
     }
     
     .weekdays-header .weekday {
-      padding: 8px;
-      box-sizing: border-box; /* Added for consistent width calculation */
+      padding: 6px;
+      box-sizing: border-box;
     }
     
     /* Month View */
@@ -310,63 +352,63 @@ import { DropZoneDirective } from './drop-zone.directive';
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 1px;
-      background-color: #f0f0f0;
-      border: 1px solid #f0f0f0;
+      background-color: var(--calendar-line);
+      border: 1px solid var(--calendar-line);
     }
     
     .calendar-day {
       min-height: 100px;
-      background-color: #fff;
-      padding: 4px;
+      background-color: #ffffff;
+      padding: 8px;
       display: flex;
       flex-direction: column;
       cursor: pointer;
-      box-sizing: border-box; /* Ensures padding and border are included in the element's total width and height */
-      min-width: 0; /* Ensures grid columns maintain equal width regardless of content */
+      box-sizing: border-box;
+      min-width: 0;
     }
     
     .calendar-day:hover {
-      background-color: #f9f9f9;
+      background-color: #f8fafc;
     }
     
     .calendar-day.today {
-      background-color: #fcf8e3;
+      background-color: #eff6ff;
     }
     
     .calendar-day.selected {
-      background-color: #d9edf7;
+      background-color: #dbeafe;
     }
     
     .calendar-day:not(.current-month) {
-      color: #ccc;
-      background-color: #f9f9f9;
+      color: #94a3b8;
+      background-color: #f8fafc;
     }
     
     .date-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     
     .date-number {
-      font-weight: bold;
-      font-size: 0.9rem;
+      font-weight: 650;
+      font-size: 0.8125rem;
     }
     
     .add-event-btn {
       visibility: hidden;
-      background-color: #3788d8;
+      background-color: var(--calendar-accent);
       color: white;
       border: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 16px;
       padding: 0;
     }
     
@@ -379,7 +421,7 @@ import { DropZoneDirective } from './drop-zone.directive';
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
     }
     
     .event-item {
@@ -398,9 +440,10 @@ import { DropZoneDirective } from './drop-zone.directive';
     
     .more-events {
       font-size: 0.8rem;
-      color: #888;
-      margin-top: 2px;
-      text-align: center;
+      color: var(--calendar-accent);
+      margin-top: 4px;
+      text-align: left;
+      font-weight: 600;
     }
     
     /* Week View */
@@ -416,13 +459,13 @@ import { DropZoneDirective } from './drop-zone.directive';
     
     .time-gutter {
       width: 60px;
-      border-right: 1px solid #eee;
+      border-right: 1px solid var(--calendar-line);
     }
     
     .hour-cell {
       height: 60px;
-      border-bottom: 1px solid #eee;
-      padding: 2px 4px;
+      border-bottom: 1px solid var(--calendar-line);
+      padding: 2px 6px;
       position: relative;
       box-sizing: border-box; /* Ensure padding and border are within the height */
     }
@@ -431,7 +474,7 @@ import { DropZoneDirective } from './drop-zone.directive';
       text-align: right;
       padding-right: 8px;
       font-size: 0.8rem;
-      color: #666;
+      color: var(--calendar-muted);
     }
     
     .days-container {
@@ -441,9 +484,9 @@ import { DropZoneDirective } from './drop-zone.directive';
     }
       .day-column {
       position: relative;
-      border-right: 1px solid #eee;
-      overflow: visible; /* Allow multi-day events to cross column boundaries */
-      z-index: 1; /* Ensure proper stacking context for events */
+      border-right: 1px solid var(--calendar-line);
+      overflow: visible;
+      z-index: 1;
     }
     
     .day-column:last-child {
@@ -468,7 +511,7 @@ import { DropZoneDirective } from './drop-zone.directive';
       grid-template-columns: 60px 1fr;
       text-align: center;
       font-weight: bold;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid var(--calendar-line);
     }
     
     .day-body {
@@ -521,31 +564,36 @@ import { DropZoneDirective } from './drop-zone.directive';
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: rgba(0, 0, 0, 0.5);
+      background-color: rgba(15, 23, 42, 0.42);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 1000;
+      padding: 20px;
+      box-sizing: border-box;
     }
     
     .event-form {
       background-color: white;
-      border-radius: 8px;
-      padding: 20px;
+      border-radius: 12px;
+      padding: 28px;
       width: 90%;
-      max-width: 500px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      max-width: 520px;
+      box-shadow: 0 24px 64px rgba(15, 23, 42, 0.22);
+      border: 1px solid rgba(226, 232, 240, 0.9);
     }
     
     .event-form h3 {
-      margin-top: 0;
-      margin-bottom: 16px;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 8px;
+      margin: 0 0 24px;
+      border-bottom: 1px solid var(--calendar-line);
+      padding-bottom: 16px;
+      color: var(--calendar-ink);
+      font-size: 1.125rem;
+      font-weight: 700;
     }
     
     .form-group {
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
     
     .form-row {
@@ -561,22 +609,34 @@ import { DropZoneDirective } from './drop-zone.directive';
     
     .form-group label {
       display: block;
-      margin-bottom: 4px;
-      font-weight: bold;
-      font-size: 0.9rem;
+      margin-bottom: 7px;
+      color: #475569;
+      font-weight: 600;
+      font-size: 0.8125rem;
     }
     
     .form-group input, .form-group textarea {
       width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      min-height: 38px;
+      padding: 9px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
       box-sizing: border-box;
-      font-size: 0.9rem;
+      color: var(--calendar-ink);
+      background: #ffffff;
+      font: inherit;
+      font-size: 0.875rem;
+      transition: border-color 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--calendar-accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+      outline: none;
     }
     
     .form-group textarea {
-      height: 80px;
+      min-height: 88px;
       resize: vertical;
     }
     
@@ -584,10 +644,13 @@ import { DropZoneDirective } from './drop-zone.directive';
       display: flex;
       align-items: center;
       gap: 8px;
+      margin-bottom: 12px;
     }
     
     .checkbox-group input {
       width: auto;
+      min-height: auto;
+      accent-color: var(--calendar-accent);
     }
     
     .checkbox-group label {
@@ -598,32 +661,44 @@ import { DropZoneDirective } from './drop-zone.directive';
       display: flex;
       justify-content: flex-end;
       gap: 8px;
-      margin-top: 16px;
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--calendar-line);
     }
     
     .btn {
-      padding: 8px 16px;
-      border-radius: 4px;
+      min-height: 38px;
+      padding: 8px 15px;
+      border-radius: 6px;
       cursor: pointer;
       border: none;
-      font-size: 0.9rem;
+      font: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: background-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
     }
     
     .save-btn {
-      background-color: #3788d8;
+      background-color: var(--calendar-accent);
       color: white;
+      box-shadow: 0 1px 2px rgba(37, 99, 235, 0.24);
     }
     
     .cancel-btn {
-      background-color: #f5f5f5;
-      border: 1px solid #ddd;
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
     }
     
     .delete-btn {
-      background-color: #dc3545;
+      background-color: #dc2626;
       color: white;
       margin-right: auto;
     }
+
+    .btn:hover { transform: translateY(-1px); }
+    .save-btn:hover { background-color: #1d4ed8; }
+    .cancel-btn:hover { background-color: #f8fafc; }
+    .delete-btn:hover { background-color: #b91c1c; }
     
     /* Draggable event styles */
     ::ng-deep .calendar-month-view lib-draggable-event {

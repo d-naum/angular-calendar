@@ -8,9 +8,10 @@
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,    "paths": {
-      "my-library": [
-        "./projects/my-library/src/public-api.ts"
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@groooh/angular-calendar": [
+        "./projects/angular-calendar-lib/src/public-api.ts"
       ]
     },
     "skipLibCheck": true,

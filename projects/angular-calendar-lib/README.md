@@ -4,6 +4,10 @@ A flexible and feature-rich calendar component for Angular applications. This li
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.0.
 
+## Custom Projects
+
+For custom Angular calendar implementations or project work, visit [Groooh](https://www.groooh.com).
+
 ## Installation
 
 To install `@groooh/angular-calendar` in your project, run the following command:
