@@ -1,6 +1,6 @@
 {
   "name": "@groooh/angular-calendar",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Feature-rich Angular calendar with month, week, and day views, event management, drag and drop, and recurrence support.",
   "keywords": [
     "angular",
