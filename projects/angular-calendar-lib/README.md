@@ -2,6 +2,8 @@
 
 A flexible and feature-rich calendar component for Angular applications. This library allows you to easily integrate a calendar with month, week, and day views, event management, drag-and-drop functionality, and recurrence support.
 
+Explore the live demos: [Angular Calendar Demo](https://angular-calendar-groooh.vercel.app/)
+
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.0.
 
 ## Custom Projects
